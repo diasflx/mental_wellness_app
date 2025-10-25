@@ -212,28 +212,28 @@ export default function BreathingExercise() {
         <h3 className="text-xl font-bold text-gray-800 mb-4">Benefits of Breathing Exercises</h3>
         <ul className="space-y-3">
           <li className="flex items-start">
-            <span className="text-2xl mr-3">🧘</span>
+            <span className="text-2xl mr-3">�</span>
             <div>
               <h4 className="font-semibold">Reduces Stress & Anxiety</h4>
               <p className="text-gray-600">Activates the parasympathetic nervous system</p>
             </div>
           </li>
           <li className="flex items-start">
-            <span className="text-2xl mr-3">❤️</span>
+            <span className="text-2xl mr-3">❤</span>
             <div>
               <h4 className="font-semibold">Improves Heart Health</h4>
               <p className="text-gray-600">Helps lower blood pressure and heart rate</p>
             </div>
           </li>
           <li className="flex items-start">
-            <span className="text-2xl mr-3">🧠</span>
+            <span className="text-2xl mr-3">�</span>
             <div>
               <h4 className="font-semibold">Enhances Focus</h4>
               <p className="text-gray-600">Increases oxygen flow to the brain</p>
             </div>
           </li>
           <li className="flex items-start">
-            <span className="text-2xl mr-3">😴</span>
+            <span className="text-2xl mr-3">�</span>
             <div>
               <h4 className="font-semibold">Better Sleep</h4>
               <p className="text-gray-600">Promotes relaxation and prepares body for rest</p>

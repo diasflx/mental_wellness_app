@@ -111,7 +111,6 @@ export default function SymptomFeed({ refreshTrigger }) {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-4xl mb-4">🔍</div>
         <p className="text-gray-600">Loading symptom posts...</p>
       </div>
     );
@@ -122,10 +121,10 @@ export default function SymptomFeed({ refreshTrigger }) {
       {/* Filter Buttons */}
       <div className="flex flex-wrap gap-2">
         {[
-          { id: 'all', label: 'All Posts', icon: '📋' },
-          { id: 'my_posts', label: 'My Posts', icon: '👤' },
-          { id: 'open', label: 'Open', icon: '🔓' },
-          { id: 'resolved', label: 'Resolved', icon: '✅' }
+          { id: 'all', label: 'All Posts' },
+          { id: 'my_posts', label: 'My Posts' },
+          { id: 'open', label: 'Open' },
+          { id: 'resolved', label: 'Resolved' }
         ].map((filterOption) => (
           <button
             key={filterOption.id}
@@ -136,7 +135,6 @@ export default function SymptomFeed({ refreshTrigger }) {
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            <span className="mr-1">{filterOption.icon}</span>
             {filterOption.label}
           </button>
         ))}
@@ -145,7 +143,6 @@ export default function SymptomFeed({ refreshTrigger }) {
       {/* Symptom Cards */}
       {symptoms.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <div className="text-4xl mb-4">📝</div>
           <p className="text-gray-600 text-lg">No symptom posts found.</p>
           <p className="text-gray-500 text-sm mt-2">
             {filter === 'my_posts'

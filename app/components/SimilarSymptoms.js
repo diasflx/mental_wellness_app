@@ -8,6 +8,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const [similarCases, setSimilarCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [aiSuggestions, setAiSuggestions] = useState('');
+  const [error, setError] = useState('');
   const [showResolveForm, setShowResolveForm] = useState(false);
   const [solutionText, setSolutionText] = useState('');
   const [resolving, setResolving] = useState(false);
@@ -42,9 +43,10 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError('');
 
         // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
-        const { data, error } = await supabase
+        const { data, error: dbError } = await supabase
           .from('symptoms')
           .select(`
             *,
@@ -57,9 +59,15 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
           .neq('id', symptom.id)
           .order('created_at', { ascending: false }); // Get all, ordered by newest first
 
-        if (error) throw error;
+        if (dbError) throw dbError;
 
         console.log(`Fetched ${data?.length || 0} symptoms to compare against`);
+
+        if (!data || data.length === 0) {
+          setSimilarCases([]);
+          setLoading(false);
+          return;
+        }
 
         // Call API endpoint to use AI-powered matching
         const response = await fetch('/api/match-symptoms', {
@@ -72,8 +80,18 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to match symptoms');
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || 'Failed to match symptoms';
+
+          if (errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
+            setError('AI matching temporarily unavailable due to rate limits. Please try again in a moment.');
+          } else {
+            setError('Unable to analyze symptoms at this time. Please try again later.');
+          }
+
+          setSimilarCases([]);
+          setLoading(false);
+          return;
         }
 
         const { matches } = await response.json();
@@ -85,6 +103,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         fetchAiSuggestions(matches || []);
       } catch (error) {
         console.error('Error fetching similar cases:', error);
+        setError('An error occurred while analyzing symptoms. Please try again.');
         setSimilarCases([]);
       } finally {
         setLoading(false);
@@ -156,11 +175,17 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           {/* AI Suggestions */}
-          {aiSuggestions && (
+          {aiSuggestions && !error && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-bold text-blue-900 mb-2 flex items-center">
-                <span className="mr-2">🤖</span>
+              <h3 className="font-bold text-blue-900 mb-2">
                 AI-Generated Suggestions
               </h3>
               <div className="text-sm text-blue-800 whitespace-pre-line">
@@ -177,12 +202,10 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
             {loading ? (
               <div className="text-center py-8">
-                <div className="text-3xl mb-2">🔍</div>
                 <p className="text-gray-600">Finding similar cases...</p>
               </div>
             ) : similarCases.length === 0 ? (
               <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="text-3xl mb-2">🔍</div>
                 <p className="text-gray-600">No similar cases found yet.</p>
                 <p className="text-gray-500 text-sm mt-1">
                   You might be the first with these symptoms!
@@ -254,14 +277,14 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                     onClick={() => setShowResolveForm(true)}
                     className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
                   >
-                    ✅ Mark as Resolved with Solution
+                    Mark as Resolved with Solution
                   </button>
                   <button
                     onClick={() => handleResolve(true)}
                     disabled={resolving}
                     className="w-full bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 transition-colors disabled:opacity-50"
                   >
-                    👨‍⚕️ I Consulted a Specialist
+                    I Consulted a Specialist
                   </button>
                 </div>
               ) : (

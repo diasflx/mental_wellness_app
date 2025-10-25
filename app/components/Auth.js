@@ -183,7 +183,7 @@ export default function Auth() {
               onClick={demoLogin}
               className="mt-4 w-full bg-gray-700 text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
             >
-              🚀 Enter Demo Mode (Skip Login)
+              � Enter Demo Mode (Skip Login)
             </button>
             <p className="text-xs text-gray-500 mt-2">
               Demo mode is only available on localhost

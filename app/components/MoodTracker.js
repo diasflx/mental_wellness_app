@@ -7,11 +7,11 @@ export default function MoodTracker() {
   const [note, setNote] = useState('');
 
   const moodOptions = [
-    { emoji: '😊', label: 'Great', value: 5, color: 'bg-green-500' },
-    { emoji: '🙂', label: 'Good', value: 4, color: 'bg-blue-500' },
-    { emoji: '😐', label: 'Okay', value: 3, color: 'bg-yellow-500' },
-    { emoji: '😔', label: 'Not Good', value: 2, color: 'bg-orange-500' },
-    { emoji: '😢', label: 'Bad', value: 1, color: 'bg-red-500' }
+    { emoji: '�', label: 'Great', value: 5, color: 'bg-green-500' },
+    { emoji: '�', label: 'Good', value: 4, color: 'bg-blue-500' },
+    { emoji: '�', label: 'Okay', value: 3, color: 'bg-yellow-500' },
+    { emoji: '�', label: 'Not Good', value: 2, color: 'bg-orange-500' },
+    { emoji: '�', label: 'Bad', value: 1, color: 'bg-red-500' }
   ];
 
   useEffect(() => {

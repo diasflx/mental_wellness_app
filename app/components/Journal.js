@@ -122,7 +122,7 @@ export default function Journal() {
               onClick={getNewPrompt}
               className="ml-4 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
             >
-              🔄 New
+              � New
             </button>
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function Journal() {
       {/* Empty State */}
       {entries.length === 0 && (
         <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-          <div className="text-6xl mb-4">📝</div>
+          
           <h3 className="text-xl font-bold text-gray-800 mb-2">Start Your Journaling Journey</h3>
           <p className="text-gray-600">
             Begin by writing your first entry above. Journaling can help you process emotions,
