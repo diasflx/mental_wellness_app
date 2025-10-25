@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { findSimilarSymptoms } from '../../lib/gemini';
+import { findSimilarSymptomsWithAI } from '../../lib/gemini';
 
 export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const { user } = useAuth();
@@ -16,7 +16,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
   const fetchSimilarCases = useCallback(async () => {
     try {
-      // Fetch all symptoms except the current one
+      // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
       const { data, error } = await supabase
         .from('symptoms')
         .select(`
@@ -27,19 +27,20 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
             created_at
           )
         `)
-        .neq('id', symptom.id);
+        .neq('id', symptom.id)
+        .order('created_at', { ascending: false }); // Get all, ordered by newest first
 
       if (error) throw error;
 
-      // Find similar symptoms using keyword matching
-      const similar = findSimilarSymptoms(symptom.symptoms_keywords || [], data || []);
+      // Use AI-powered matching to find similar symptoms intelligently
+      const similar = await findSimilarSymptomsWithAI(symptom, data || []);
       setSimilarCases(similar.slice(0, 5)); // Show top 5 matches
     } catch (error) {
       console.error('Error fetching similar cases:', error);
     } finally {
       setLoading(false);
     }
-  }, [symptom.id, symptom.symptoms_keywords]);
+  }, [symptom]);
 
   const fetchAiSuggestions = useCallback(async () => {
     try {

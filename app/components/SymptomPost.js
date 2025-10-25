@@ -3,13 +3,41 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
-// Fallback keyword extraction
+// Fallback keyword extraction - focuses on health/medical terms
 function extractSimpleKeywords(text) {
-  return text
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(word => word.length > 3)
-    .slice(0, 10); // Limit to 10 keywords
+  const healthKeywords = [
+    // Symptoms
+    'pain', 'ache', 'sore', 'hurt', 'burning', 'tingling', 'numb', 'dizzy', 'nausea',
+    'fever', 'cough', 'cold', 'fatigue', 'tired', 'weakness', 'swelling', 'rash',
+    'itch', 'bleeding', 'discharge', 'vomiting', 'diarrhea', 'constipation',
+    'headache', 'migraine', 'cramp', 'spasm', 'stiff', 'tender', 'pressure',
+    'breathless', 'wheezing', 'congestion', 'runny', 'stuffy', 'sneezing',
+
+    // Body parts
+    'head', 'neck', 'shoulder', 'back', 'chest', 'stomach', 'abdomen', 'belly',
+    'arm', 'hand', 'finger', 'leg', 'foot', 'toe', 'knee', 'elbow', 'wrist', 'ankle',
+    'eye', 'ear', 'nose', 'throat', 'mouth', 'tooth', 'teeth', 'tongue', 'gum',
+    'heart', 'lung', 'liver', 'kidney', 'skin', 'muscle', 'joint', 'bone',
+
+    // Severity/Duration
+    'severe', 'mild', 'moderate', 'chronic', 'acute', 'sudden', 'gradual',
+    'constant', 'intermittent', 'persistent', 'occasional', 'frequent',
+    'days', 'weeks', 'months', 'hours', 'morning', 'night', 'evening',
+
+    // Descriptors
+    'sharp', 'dull', 'throbbing', 'stabbing', 'shooting', 'radiating',
+    'swollen', 'inflamed', 'red', 'bruised', 'infected'
+  ];
+
+  const words = text.toLowerCase().split(/\s+/);
+  const foundKeywords = words.filter(word =>
+    healthKeywords.some(keyword =>
+      word.includes(keyword) || keyword.includes(word)
+    ) && word.length > 2
+  );
+
+  // Remove duplicates and limit to 10
+  return [...new Set(foundKeywords)].slice(0, 10);
 }
 
 export default function SymptomPost({ onPostCreated }) {
