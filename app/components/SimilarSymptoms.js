@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { findSimilarSymptomsWithAI } from '../../lib/gemini';
 
 export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const { user } = useAuth();
@@ -16,6 +15,8 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
   const fetchSimilarCases = useCallback(async () => {
     try {
+      setLoading(true);
+
       // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
       const { data, error } = await supabase
         .from('symptoms')
@@ -32,11 +33,30 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
       if (error) throw error;
 
-      // Use AI-powered matching to find similar symptoms intelligently
-      const similar = await findSimilarSymptomsWithAI(symptom, data || []);
-      setSimilarCases(similar.slice(0, 5)); // Show top 5 matches
+      console.log(`Fetched ${data?.length || 0} symptoms to compare against`);
+
+      // Call API endpoint to use AI-powered matching
+      const response = await fetch('/api/match-symptoms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentSymptom: symptom,
+          allSymptoms: data || []
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to match symptoms');
+      }
+
+      const { matches } = await response.json();
+      console.log(`Received ${matches?.length || 0} matches from AI`);
+
+      setSimilarCases(matches || []);
     } catch (error) {
       console.error('Error fetching similar cases:', error);
+      setSimilarCases([]);
     } finally {
       setLoading(false);
     }
