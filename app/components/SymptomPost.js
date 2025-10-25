@@ -5,6 +5,18 @@ import { supabase } from '../../lib/supabase';
 
 // Fallback keyword extraction - focuses on health/medical terms
 function extractSimpleKeywords(text) {
+  // Common words to exclude
+  const stopWords = new Set([
+    'and', 'the', 'with', 'this', 'that', 'have', 'has', 'been', 'was', 'were',
+    'are', 'for', 'from', 'but', 'not', 'what', 'when', 'where', 'who', 'why',
+    'how', 'can', 'could', 'would', 'should', 'will', 'may', 'might', 'must',
+    'about', 'after', 'before', 'during', 'since', 'until', 'while', 'into',
+    'onto', 'over', 'under', 'above', 'below', 'between', 'among', 'through',
+    'very', 'just', 'only', 'also', 'even', 'still', 'too', 'much', 'many',
+    'some', 'any', 'all', 'both', 'each', 'every', 'few', 'more', 'most',
+    'other', 'such', 'than', 'then', 'there', 'these', 'those'
+  ]);
+
   const healthKeywords = [
     // Symptoms
     'pain', 'ache', 'sore', 'hurt', 'burning', 'tingling', 'numb', 'dizzy', 'nausea',
@@ -29,15 +41,21 @@ function extractSimpleKeywords(text) {
     'swollen', 'inflamed', 'red', 'bruised', 'infected'
   ];
 
-  const words = text.toLowerCase().split(/\s+/);
-  const foundKeywords = words.filter(word =>
-    healthKeywords.some(keyword =>
-      word.includes(keyword) || keyword.includes(word)
-    ) && word.length > 2
-  );
+  const words = text.toLowerCase()
+    .split(/\s+/)
+    .map(w => w.replace(/[^\w]/g, '')); // Remove punctuation
 
-  // Remove duplicates and limit to 10
-  return [...new Set(foundKeywords)].slice(0, 10);
+  const foundKeywords = words.filter(word => {
+    if (word.length <= 2) return false;
+    if (stopWords.has(word)) return false;
+
+    return healthKeywords.some(keyword =>
+      word.includes(keyword) || keyword.includes(word)
+    );
+  });
+
+  // Remove duplicates and limit to 8
+  return [...new Set(foundKeywords)].slice(0, 8);
 }
 
 export default function SymptomPost({ onPostCreated }) {
