@@ -13,63 +13,15 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const [resolving, setResolving] = useState(false);
   const isOwnPost = symptom.user_id === user.id;
 
-  const fetchSimilarCases = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
-      const { data, error } = await supabase
-        .from('symptoms')
-        .select(`
-          *,
-          solutions (
-            id,
-            solution_text,
-            created_at
-          )
-        `)
-        .neq('id', symptom.id)
-        .order('created_at', { ascending: false }); // Get all, ordered by newest first
-
-      if (error) throw error;
-
-      console.log(`Fetched ${data?.length || 0} symptoms to compare against`);
-
-      // Call API endpoint to use AI-powered matching
-      const response = await fetch('/api/match-symptoms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentSymptom: symptom,
-          allSymptoms: data || []
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to match symptoms');
-      }
-
-      const { matches } = await response.json();
-      console.log(`Received ${matches?.length || 0} matches from AI`);
-
-      setSimilarCases(matches || []);
-    } catch (error) {
-      console.error('Error fetching similar cases:', error);
-      setSimilarCases([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [symptom]);
-
-  const fetchAiSuggestions = useCallback(async () => {
+  // Define AI suggestions function first
+  const fetchAiSuggestions = useCallback(async (cases) => {
     try {
       const response = await fetch('/api/generate-suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           symptoms: symptom.description,
-          similarCases: similarCases.filter(c => c.solutions && c.solutions.length > 0)
+          similarCases: cases.filter(c => c.solutions && c.solutions.length > 0)
         })
       });
 
@@ -83,12 +35,64 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
     } catch (error) {
       console.error('Error fetching AI suggestions:', error);
     }
-  }, [symptom.description, similarCases]);
+  }, [symptom.description]);
 
+  // Fetch similar cases and then AI suggestions
   useEffect(() => {
-    fetchSimilarCases();
-    fetchAiSuggestions();
-  }, [fetchSimilarCases, fetchAiSuggestions]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
+        const { data, error } = await supabase
+          .from('symptoms')
+          .select(`
+            *,
+            solutions (
+              id,
+              solution_text,
+              created_at
+            )
+          `)
+          .neq('id', symptom.id)
+          .order('created_at', { ascending: false }); // Get all, ordered by newest first
+
+        if (error) throw error;
+
+        console.log(`Fetched ${data?.length || 0} symptoms to compare against`);
+
+        // Call API endpoint to use AI-powered matching
+        const response = await fetch('/api/match-symptoms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentSymptom: symptom,
+            allSymptoms: data || []
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to match symptoms');
+        }
+
+        const { matches } = await response.json();
+        console.log(`Received ${matches?.length || 0} matches from AI`);
+
+        setSimilarCases(matches || []);
+
+        // Fetch AI suggestions after getting matches
+        fetchAiSuggestions(matches || []);
+      } catch (error) {
+        console.error('Error fetching similar cases:', error);
+        setSimilarCases([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [symptom, fetchAiSuggestions]);
 
   const handleResolve = async (withSpecialist = false) => {
     if (!withSpecialist && !solutionText.trim()) {
