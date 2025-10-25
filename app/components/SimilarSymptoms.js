@@ -52,8 +52,13 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         })
       });
 
-      const { suggestions } = await response.json();
-      setAiSuggestions(suggestions);
+      if (!response.ok) {
+        console.error('Failed to generate suggestions:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      setAiSuggestions(data.suggestions || '');
     } catch (error) {
       console.error('Error fetching AI suggestions:', error);
     }

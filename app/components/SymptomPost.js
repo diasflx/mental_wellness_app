@@ -27,7 +27,13 @@ export default function SymptomPost({ onPostCreated }) {
         body: JSON.stringify({ description })
       });
 
-      const { keywords } = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to extract keywords' }));
+        throw new Error(errorData.error || 'Failed to extract keywords');
+      }
+
+      const keywordsData = await response.json();
+      const keywords = keywordsData.keywords || [];
 
       // Insert into Supabase
       const { data, error: insertError } = await supabase
