@@ -15,7 +15,6 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🌸</div>
           <h2 className="text-2xl font-bold text-gray-800">Loading...</h2>
         </div>
       </div>
@@ -35,7 +34,7 @@ export default function Home() {
         <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-center">
             <span className="text-yellow-800 font-medium text-sm">
-              ⚠️ Demo Mode: Limited functionality. Posts and data won&apos;t be saved. Sign up for full access!
+              Demo Mode: Limited functionality. Posts and data won&apos;t be saved. Sign up for full access!
             </span>
           </div>
         </div>
@@ -71,10 +70,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
-              { id: 'home', label: 'Home', icon: '🏠' },
-              { id: 'post', label: 'Post Symptoms', icon: '📝' },
-              { id: 'feed', label: 'Community Feed', icon: '📋' },
-              { id: 'profile', label: 'Profile', icon: '👤' }
+              { id: 'home', label: 'Home' },
+              { id: 'post', label: 'Post Symptoms' },
+              { id: 'feed', label: 'Community Feed' },
+              { id: 'profile', label: 'Profile' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -85,7 +84,6 @@ export default function Home() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <span className="mr-2">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
@@ -109,7 +107,6 @@ export default function Home() {
                   onClick={() => setActiveTab('post')}
                   className="bg-white border-2 border-gray-200 text-gray-800 p-6 rounded-lg hover:border-indigo-600 hover:shadow-lg transition-all"
                 >
-                  <div className="text-4xl mb-2">📝</div>
                   <h3 className="font-bold text-xl mb-2">Post Your Symptoms</h3>
                   <p className="text-sm text-gray-600">Share what you&apos;re experiencing and get matched with similar cases</p>
                 </button>
@@ -117,7 +114,6 @@ export default function Home() {
                   onClick={() => setActiveTab('feed')}
                   className="bg-white border-2 border-gray-200 text-gray-800 p-6 rounded-lg hover:border-indigo-600 hover:shadow-lg transition-all"
                 >
-                  <div className="text-4xl mb-2">📋</div>
                   <h3 className="font-bold text-xl mb-2">Browse Community</h3>
                   <p className="text-sm text-gray-600">Explore symptoms and solutions shared by others</p>
                 </button>
