@@ -1,41 +1,62 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 export default function UserProfile() {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    totalMoods: 0,
-    totalEntries: 0,
+    totalSymptoms: 0,
+    totalSolutions: 0,
     joinDate: '',
-    streak: 0
+    resolvedCount: 0
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load stats from localStorage
-    const moods = JSON.parse(localStorage.getItem('moods') || '[]');
-    const entries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
-
-    // Calculate streak (days with entries in the last week)
-    const now = new Date();
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-
-    const recentDates = new Set();
-    [...moods, ...entries].forEach(item => {
-      const itemDate = new Date(item.timestamp || item.createdAt);
-      if (itemDate > weekAgo) {
-        recentDates.add(itemDate.toDateString());
-      }
-    });
-
-    setStats({
-      totalMoods: moods.length,
-      totalEntries: entries.length,
-      joinDate: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
-      streak: recentDates.size
-    });
+    fetchUserStats();
   }, [user]);
+
+  const fetchUserStats = async () => {
+    setLoading(true);
+    try {
+      // Fetch user's symptoms
+      const { data: symptoms, error: symptomsError } = await supabase
+        .from('symptoms')
+        .select('id, status')
+        .eq('user_id', user.id);
+
+      if (symptomsError) throw symptomsError;
+
+      // Fetch user's solutions
+      const { data: solutions, error: solutionsError } = await supabase
+        .from('solutions')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (solutionsError) throw solutionsError;
+
+      const resolvedSymptoms = symptoms?.filter(s => s.status === 'resolved').length || 0;
+
+      setStats({
+        totalSymptoms: symptoms?.length || 0,
+        totalSolutions: solutions?.length || 0,
+        joinDate: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+        resolvedCount: resolvedSymptoms
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      // Fallback to zero stats if there's an error
+      setStats({
+        totalSymptoms: 0,
+        totalSolutions: 0,
+        joinDate: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+        resolvedCount: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -56,66 +77,85 @@ export default function UserProfile() {
       </div>
 
       {/* Statistics */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border-2 border-indigo-200 rounded-lg shadow-sm p-6">
-          <div className="text-4xl mb-2">😊</div>
-          <div className="text-3xl font-bold text-gray-900">{stats.totalMoods}</div>
-          <div className="text-gray-600 text-sm">Mood Entries</div>
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="text-4xl mb-4">📊</div>
+          <p className="text-gray-600">Loading your stats...</p>
         </div>
-        <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm p-6">
-          <div className="text-4xl mb-2">📝</div>
-          <div className="text-3xl font-bold text-gray-900">{stats.totalEntries}</div>
-          <div className="text-gray-600 text-sm">Journal Entries</div>
-        </div>
-        <div className="bg-white border-2 border-blue-200 rounded-lg shadow-sm p-6">
-          <div className="text-4xl mb-2">🔥</div>
-          <div className="text-3xl font-bold text-gray-900">{stats.streak}</div>
-          <div className="text-gray-600 text-sm">Day Streak</div>
-        </div>
-        <div className="bg-white border-2 border-green-200 rounded-lg shadow-sm p-6">
-          <div className="text-4xl mb-2">🎯</div>
-          <div className="text-3xl font-bold text-gray-900">{stats.totalMoods + stats.totalEntries}</div>
-          <div className="text-gray-600 text-sm">Total Activities</div>
-        </div>
-      </div>
-
-      {/* Wellness Tips */}
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Wellness Journey</h3>
-        <div className="space-y-4">
-          <div className="flex items-start space-x-3 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <span className="text-2xl">🎉</span>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-800">Keep it up!</h4>
-              <p className="text-gray-600 text-sm">You&apos;ve logged {stats.totalMoods + stats.totalEntries} activities. Consistency is key to understanding your mental health patterns.</p>
-            </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border-2 border-indigo-200 rounded-lg shadow-sm p-6">
+            <div className="text-4xl mb-2">📝</div>
+            <div className="text-3xl font-bold text-gray-900">{stats.totalSymptoms}</div>
+            <div className="text-gray-600 text-sm">Symptom Posts</div>
           </div>
+          <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm p-6">
+            <div className="text-4xl mb-2">💡</div>
+            <div className="text-3xl font-bold text-gray-900">{stats.totalSolutions}</div>
+            <div className="text-gray-600 text-sm">Solutions Shared</div>
+          </div>
+          <div className="bg-white border-2 border-green-200 rounded-lg shadow-sm p-6">
+            <div className="text-4xl mb-2">✅</div>
+            <div className="text-3xl font-bold text-gray-900">{stats.resolvedCount}</div>
+            <div className="text-gray-600 text-sm">Cases Resolved</div>
+          </div>
+          <div className="bg-white border-2 border-blue-200 rounded-lg shadow-sm p-6">
+            <div className="text-4xl mb-2">🎯</div>
+            <div className="text-3xl font-bold text-gray-900">{stats.totalSymptoms + stats.totalSolutions}</div>
+            <div className="text-gray-600 text-sm">Total Contributions</div>
+          </div>
+        </div>
+      )}
 
-          {stats.streak >= 3 && (
-            <div className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg">
+      {/* Community Activity */}
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Community Activity</h3>
+        <div className="space-y-4">
+          {stats.totalSymptoms > 0 && (
+            <div className="flex items-start space-x-3 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <span className="text-2xl">🎉</span>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-800">Great participation!</h4>
+                <p className="text-gray-600 text-sm">You&apos;ve shared {stats.totalSymptoms} symptom {stats.totalSymptoms === 1 ? 'post' : 'posts'} with the community. Your experiences help others!</p>
+              </div>
+            </div>
+          )}
+
+          {stats.resolvedCount > 0 && (
+            <div className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
               <span className="text-2xl">⭐</span>
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-800">Great streak!</h4>
-                <p className="text-gray-600 text-sm">You&apos;ve been active for {stats.streak} days this week. You&apos;re building a healthy habit!</p>
+                <h4 className="font-semibold text-gray-800">Solutions found!</h4>
+                <p className="text-gray-600 text-sm">You&apos;ve resolved {stats.resolvedCount} {stats.resolvedCount === 1 ? 'case' : 'cases'}. That&apos;s wonderful progress!</p>
               </div>
             </div>
           )}
 
-          {stats.totalEntries < 3 && (
-            <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
+          {stats.totalSolutions > 0 && (
+            <div className="flex items-start space-x-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
               <span className="text-2xl">💡</span>
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-800">Try journaling</h4>
-                <p className="text-gray-600 text-sm">Writing down your thoughts can help you process emotions and gain clarity.</p>
+                <h4 className="font-semibold text-gray-800">Helping others!</h4>
+                <p className="text-gray-600 text-sm">You&apos;ve shared {stats.totalSolutions} {stats.totalSolutions === 1 ? 'solution' : 'solutions'}. Your insights are valuable to the community!</p>
               </div>
             </div>
           )}
 
-          <div className="flex items-start space-x-3 p-4 bg-pink-50 rounded-lg">
+          {stats.totalSymptoms === 0 && (
+            <div className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <span className="text-2xl">🌟</span>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-800">Get started</h4>
+                <p className="text-gray-600 text-sm">Share your first symptom post to connect with the community and find helpful solutions.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-start space-x-3 p-4 bg-pink-50 border border-pink-200 rounded-lg">
             <span className="text-2xl">🌱</span>
             <div className="flex-1">
-              <h4 className="font-semibold text-gray-800">Self-care reminder</h4>
-              <p className="text-gray-600 text-sm">Remember to take breaks, stay hydrated, and be kind to yourself today.</p>
+              <h4 className="font-semibold text-gray-800">Health reminder</h4>
+              <p className="text-gray-600 text-sm">Remember: This platform is for community support. Always consult healthcare professionals for medical advice.</p>
             </div>
           </div>
         </div>

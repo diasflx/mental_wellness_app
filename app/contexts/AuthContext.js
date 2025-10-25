@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
 
   const demoLogin = () => {
     const demoUserData = {
-      id: 'demo-user-' + Date.now(),
+      id: crypto.randomUUID(),
       email: 'demo@localhost.dev',
       user_metadata: {
         full_name: 'Demo User'

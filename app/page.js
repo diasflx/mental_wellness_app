@@ -2,14 +2,14 @@
 import { useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
-import MoodTracker from './components/MoodTracker';
-import BreathingExercise from './components/BreathingExercise';
-import Journal from './components/Journal';
+import SymptomPost from './components/SymptomPost';
+import SymptomFeed from './components/SymptomFeed';
 import UserProfile from './components/UserProfile';
 
 export default function Home() {
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   if (loading) {
     return (
@@ -26,15 +26,28 @@ export default function Home() {
     return <Auth />;
   }
 
+  const isDemoUser = user?.email === 'demo@localhost.dev';
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Demo Mode Warning */}
+      {isDemoUser && (
+        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-center">
+            <span className="text-yellow-800 font-medium text-sm">
+              ⚠️ Demo Mode: Limited functionality. Posts and data won't be saved. Sign up for full access!
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-bold text-gray-900">
-                Mental Wellness Hub
+                Health Symptom Matcher
               </h1>
               <p className="mt-2 text-gray-600">Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'friend'}!</p>
             </div>
@@ -59,9 +72,8 @@ export default function Home() {
           <div className="flex space-x-8">
             {[
               { id: 'home', label: 'Home', icon: '🏠' },
-              { id: 'mood', label: 'Mood Tracker', icon: '😊' },
-              { id: 'breathing', label: 'Breathing', icon: '🌬️' },
-              { id: 'journal', label: 'Journal', icon: '📝' },
+              { id: 'post', label: 'Post Symptoms', icon: '📝' },
+              { id: 'feed', label: 'Community Feed', icon: '📋' },
               { id: 'profile', label: 'Profile', icon: '👤' }
             ].map((tab) => (
               <button
@@ -87,106 +99,111 @@ export default function Home() {
           <div className="space-y-8">
             {/* Welcome Section */}
             <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to Your Wellness Journey</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to Health Symptom Matcher</h2>
               <p className="text-gray-600 text-lg mb-6">
-                Take a moment for yourself. This is your safe space to track your mood, practice mindfulness,
-                and reflect on your thoughts.
+                Share your symptoms, find similar cases, and discover solutions from the community.
+                Our AI-powered matching helps connect you with others who have experienced similar health concerns.
               </p>
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 <button
-                  onClick={() => setActiveTab('mood')}
-                  className="bg-white border-2 border-gray-200 text-gray-800 p-6 rounded-lg hover:border-indigo-600 hover:shadow-lg transition-all"
-                >
-                  <div className="text-4xl mb-2">😊</div>
-                  <h3 className="font-bold text-xl mb-2">Track Your Mood</h3>
-                  <p className="text-sm text-gray-600">Monitor how you&apos;re feeling throughout the day</p>
-                </button>
-                <button
-                  onClick={() => setActiveTab('breathing')}
-                  className="bg-white border-2 border-gray-200 text-gray-800 p-6 rounded-lg hover:border-indigo-600 hover:shadow-lg transition-all"
-                >
-                  <div className="text-4xl mb-2">🌬️</div>
-                  <h3 className="font-bold text-xl mb-2">Breathing Exercises</h3>
-                  <p className="text-sm text-gray-600">Calm your mind with guided breathing</p>
-                </button>
-                <button
-                  onClick={() => setActiveTab('journal')}
+                  onClick={() => setActiveTab('post')}
                   className="bg-white border-2 border-gray-200 text-gray-800 p-6 rounded-lg hover:border-indigo-600 hover:shadow-lg transition-all"
                 >
                   <div className="text-4xl mb-2">📝</div>
-                  <h3 className="font-bold text-xl mb-2">Daily Journal</h3>
-                  <p className="text-sm text-gray-600">Express your thoughts and feelings</p>
+                  <h3 className="font-bold text-xl mb-2">Post Your Symptoms</h3>
+                  <p className="text-sm text-gray-600">Share what you&apos;re experiencing and get matched with similar cases</p>
+                </button>
+                <button
+                  onClick={() => setActiveTab('feed')}
+                  className="bg-white border-2 border-gray-200 text-gray-800 p-6 rounded-lg hover:border-indigo-600 hover:shadow-lg transition-all"
+                >
+                  <div className="text-4xl mb-2">📋</div>
+                  <h3 className="font-bold text-xl mb-2">Browse Community</h3>
+                  <p className="text-sm text-gray-600">Explore symptoms and solutions shared by others</p>
                 </button>
               </div>
             </div>
 
-            {/* Mental Health Resources */}
+            {/* How It Works */}
             <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Mental Health Resources</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-bold text-lg mb-2">Crisis Support</h3>
-                  <p className="text-gray-600 mb-2">National Suicide Prevention Lifeline</p>
-                  <a href="tel:988" className="text-indigo-600 font-bold text-xl">988</a>
-                  <p className="text-sm text-gray-500 mt-2">Available 24/7</p>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">How It Works</h2>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-3">1️⃣</div>
+                  <h3 className="font-bold text-lg mb-2">Post Symptoms</h3>
+                  <p className="text-gray-600 text-sm">
+                    Describe your symptoms in detail. Our AI extracts key information.
+                  </p>
                 </div>
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-bold text-lg mb-2">Crisis Text Line</h3>
-                  <p className="text-gray-600 mb-2">Text HOME to</p>
-                  <a href="sms:741741" className="text-indigo-600 font-bold text-xl">741741</a>
-                  <p className="text-sm text-gray-500 mt-2">Free, 24/7 support</p>
+                <div className="text-center">
+                  <div className="text-4xl mb-3">2️⃣</div>
+                  <h3 className="font-bold text-lg mb-2">Get Matches</h3>
+                  <p className="text-gray-600 text-sm">
+                    AI matches your symptoms with similar cases from the community.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl mb-3">3️⃣</div>
+                  <h3 className="font-bold text-lg mb-2">Find Solutions</h3>
+                  <p className="text-gray-600 text-sm">
+                    Review solutions that worked for others or consult a specialist.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Daily Tips */}
+            {/* Health Resources */}
             <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Daily Wellness Tips</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="text-2xl mr-3">💧</span>
-                  <div>
-                    <h3 className="font-semibold">Stay Hydrated</h3>
-                    <p className="text-gray-600">Drink water throughout the day to support your mental clarity</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-2xl mr-3">🚶</span>
-                  <div>
-                    <h3 className="font-semibold">Move Your Body</h3>
-                    <p className="text-gray-600">Even a short walk can boost your mood</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-2xl mr-3">😴</span>
-                  <div>
-                    <h3 className="font-semibold">Prioritize Sleep</h3>
-                    <p className="text-gray-600">Aim for 7-9 hours of quality sleep each night</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-2xl mr-3">🤝</span>
-                  <div>
-                    <h3 className="font-semibold">Connect with Others</h3>
-                    <p className="text-gray-600">Reach out to friends or family members</p>
-                  </div>
-                </li>
-              </ul>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Emergency Health Resources</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-bold text-lg mb-2">Emergency Services</h3>
+                  <p className="text-gray-600 mb-2">For life-threatening emergencies</p>
+                  <a href="tel:911" className="text-red-600 font-bold text-xl">911</a>
+                  <p className="text-sm text-gray-500 mt-2">Available 24/7</p>
+                </div>
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-bold text-lg mb-2">Poison Control</h3>
+                  <p className="text-gray-600 mb-2">For poisoning emergencies</p>
+                  <a href="tel:1-800-222-1222" className="text-indigo-600 font-bold text-xl">1-800-222-1222</a>
+                  <p className="text-sm text-gray-500 mt-2">Free, confidential support</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Important Disclaimer */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <h3 className="font-bold text-yellow-900 mb-2 flex items-center">
+                <span className="mr-2">⚠️</span>
+                Important Medical Disclaimer
+              </h3>
+              <p className="text-sm text-yellow-800">
+                This platform is designed for sharing experiences and finding community support.
+                It is NOT a substitute for professional medical advice, diagnosis, or treatment.
+                Always consult with qualified healthcare providers for medical concerns.
+                If you are experiencing a medical emergency, call 911 immediately.
+              </p>
             </div>
           </div>
         )}
 
-        {activeTab === 'mood' && <MoodTracker />}
-        {activeTab === 'breathing' && <BreathingExercise />}
-        {activeTab === 'journal' && <Journal />}
+        {activeTab === 'post' && (
+          <SymptomPost
+            onPostCreated={(post) => {
+              setRefreshTrigger(prev => prev + 1);
+              setActiveTab('feed');
+            }}
+          />
+        )}
+        {activeTab === 'feed' && <SymptomFeed refreshTrigger={refreshTrigger} />}
         {activeTab === 'profile' && <UserProfile />}
       </main>
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 text-center text-gray-600">
-          <p className="mb-2">Remember: You are not alone. Professional help is available.</p>
-          <p className="text-sm">This website is for wellness support and is not a substitute for professional mental health care.</p>
+          <p className="mb-2">Remember: This platform is for community support and information sharing.</p>
+          <p className="text-sm">Always consult with qualified healthcare professionals for medical advice, diagnosis, or treatment.</p>
         </div>
       </footer>
     </div>

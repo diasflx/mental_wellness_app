@@ -48,9 +48,9 @@ export default function Auth() {
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Mental Wellness Hub
+              Health Symptom Matcher
             </h1>
-            <p className="text-gray-600">Your personal space for mental health and well-being</p>
+            <p className="text-gray-600">Find similar health cases and solutions from the community</p>
           </div>
 
           <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
@@ -192,7 +192,7 @@ export default function Auth() {
         )}
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>This is a safe space for your mental wellness journey.</p>
+          <p>Share and discover health solutions from the community.</p>
           <p className="mt-1">Your data is secure and private.</p>
         </div>
       </div>
