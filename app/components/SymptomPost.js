@@ -3,6 +3,15 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
+// Fallback keyword extraction
+function extractSimpleKeywords(text) {
+  return text
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(word => word.length > 3)
+    .slice(0, 10); // Limit to 10 keywords
+}
+
 export default function SymptomPost({ onPostCreated }) {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
@@ -20,20 +29,27 @@ export default function SymptomPost({ onPostCreated }) {
     setSuccess(false);
 
     try {
-      // Extract keywords using Gemini API
-      const response = await fetch('/api/extract-keywords', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description })
-      });
+      // Extract keywords using Gemini API (with fallback)
+      let keywords = [];
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to extract keywords' }));
-        throw new Error(errorData.error || 'Failed to extract keywords');
+      try {
+        const response = await fetch('/api/extract-keywords', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description })
+        });
+
+        if (response.ok) {
+          const keywordsData = await response.json();
+          keywords = keywordsData.keywords || [];
+        } else {
+          console.warn('Keyword extraction API failed, using fallback');
+          keywords = extractSimpleKeywords(description);
+        }
+      } catch (keywordError) {
+        console.error('Error extracting keywords, using fallback:', keywordError);
+        keywords = extractSimpleKeywords(description);
       }
-
-      const keywordsData = await response.json();
-      const keywords = keywordsData.keywords || [];
 
       // Insert into Supabase
       const { data, error: insertError } = await supabase
