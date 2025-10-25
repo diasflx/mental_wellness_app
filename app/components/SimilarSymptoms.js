@@ -173,7 +173,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold text-gray-800">{similar.title}</h4>
-                      <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
+                      <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-semibold">
                         {Math.round(similar.similarityScore * 100)}% match
                       </span>
                     </div>
@@ -181,17 +181,15 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                       {similar.description}
                     </p>
 
-                    {/* Common Keywords */}
-                    {similar.commonKeywords && similar.commonKeywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {similar.commonKeywords.map((keyword, idx) => (
-                          <span
-                            key={idx}
-                            className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
+                    {/* AI Match Reasoning */}
+                    {similar.matchReasoning && (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                        <p className="text-xs font-semibold text-blue-800 mb-1">
+                          Why this matches:
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          {similar.matchReasoning}
+                        </p>
                       </div>
                     )}
 

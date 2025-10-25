@@ -3,61 +3,6 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
-// Fallback keyword extraction - focuses on health/medical terms
-function extractSimpleKeywords(text) {
-  // Common words to exclude
-  const stopWords = new Set([
-    'and', 'the', 'with', 'this', 'that', 'have', 'has', 'been', 'was', 'were',
-    'are', 'for', 'from', 'but', 'not', 'what', 'when', 'where', 'who', 'why',
-    'how', 'can', 'could', 'would', 'should', 'will', 'may', 'might', 'must',
-    'about', 'after', 'before', 'during', 'since', 'until', 'while', 'into',
-    'onto', 'over', 'under', 'above', 'below', 'between', 'among', 'through',
-    'very', 'just', 'only', 'also', 'even', 'still', 'too', 'much', 'many',
-    'some', 'any', 'all', 'both', 'each', 'every', 'few', 'more', 'most',
-    'other', 'such', 'than', 'then', 'there', 'these', 'those'
-  ]);
-
-  const healthKeywords = [
-    // Symptoms
-    'pain', 'ache', 'sore', 'hurt', 'burning', 'tingling', 'numb', 'dizzy', 'nausea',
-    'fever', 'cough', 'cold', 'fatigue', 'tired', 'weakness', 'swelling', 'rash',
-    'itch', 'bleeding', 'discharge', 'vomiting', 'diarrhea', 'constipation',
-    'headache', 'migraine', 'cramp', 'spasm', 'stiff', 'tender', 'pressure',
-    'breathless', 'wheezing', 'congestion', 'runny', 'stuffy', 'sneezing',
-
-    // Body parts
-    'head', 'neck', 'shoulder', 'back', 'chest', 'stomach', 'abdomen', 'belly',
-    'arm', 'hand', 'finger', 'leg', 'foot', 'toe', 'knee', 'elbow', 'wrist', 'ankle',
-    'eye', 'ear', 'nose', 'throat', 'mouth', 'tooth', 'teeth', 'tongue', 'gum',
-    'heart', 'lung', 'liver', 'kidney', 'skin', 'muscle', 'joint', 'bone',
-
-    // Severity/Duration
-    'severe', 'mild', 'moderate', 'chronic', 'acute', 'sudden', 'gradual',
-    'constant', 'intermittent', 'persistent', 'occasional', 'frequent',
-    'days', 'weeks', 'months', 'hours', 'morning', 'night', 'evening',
-
-    // Descriptors
-    'sharp', 'dull', 'throbbing', 'stabbing', 'shooting', 'radiating',
-    'swollen', 'inflamed', 'red', 'bruised', 'infected'
-  ];
-
-  const words = text.toLowerCase()
-    .split(/\s+/)
-    .map(w => w.replace(/[^\w]/g, '')); // Remove punctuation
-
-  const foundKeywords = words.filter(word => {
-    if (word.length <= 2) return false;
-    if (stopWords.has(word)) return false;
-
-    return healthKeywords.some(keyword =>
-      word.includes(keyword) || keyword.includes(word)
-    );
-  });
-
-  // Remove duplicates and limit to 8
-  return [...new Set(foundKeywords)].slice(0, 8);
-}
-
 export default function SymptomPost({ onPostCreated }) {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
@@ -75,29 +20,7 @@ export default function SymptomPost({ onPostCreated }) {
     setSuccess(false);
 
     try {
-      // Extract keywords using Gemini API (with fallback)
-      let keywords = [];
-
-      try {
-        const response = await fetch('/api/extract-keywords', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ description })
-        });
-
-        if (response.ok) {
-          const keywordsData = await response.json();
-          keywords = keywordsData.keywords || [];
-        } else {
-          console.warn('Keyword extraction API failed, using fallback');
-          keywords = extractSimpleKeywords(description);
-        }
-      } catch (keywordError) {
-        console.error('Error extracting keywords, using fallback:', keywordError);
-        keywords = extractSimpleKeywords(description);
-      }
-
-      // Insert into Supabase
+      // Insert into Supabase (no keyword extraction needed)
       const { data, error: insertError } = await supabase
         .from('symptoms')
         .insert([
@@ -105,7 +28,6 @@ export default function SymptomPost({ onPostCreated }) {
             user_id: user.id,
             title,
             description,
-            symptoms_keywords: keywords,
             status: 'open'
           }
         ])
@@ -143,7 +65,7 @@ export default function SymptomPost({ onPostCreated }) {
       {isDemoUser && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-yellow-800 font-medium">
-            ⚠️ Demo Mode Limitation: You cannot post symptoms in demo mode. Please sign up for a real account to share posts and access the full community.
+            Demo Mode Limitation: You cannot post symptoms in demo mode. Please sign up for a real account to share posts and access the full community.
           </p>
         </div>
       )}

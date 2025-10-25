@@ -167,20 +167,6 @@ export default function SymptomFeed({ refreshTrigger }) {
 
               <p className="text-gray-600 mb-4 line-clamp-3">{symptom.description}</p>
 
-              {/* Keywords */}
-              {symptom.symptoms_keywords && symptom.symptoms_keywords.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {symptom.symptoms_keywords.slice(0, 5).map((keyword, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              )}
-
               {/* Solution Preview */}
               {symptom.solutions && symptom.solutions.length > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
