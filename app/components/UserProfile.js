@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -13,11 +13,7 @@ export default function UserProfile() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchUserStats();
-  }, [user]);
-
-  const fetchUserStats = async () => {
+  const fetchUserStats = useCallback(async () => {
     setLoading(true);
     try {
       // Fetch user's symptoms
@@ -56,7 +52,11 @@ export default function UserProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id, user?.created_at]);
+
+  useEffect(() => {
+    fetchUserStats();
+  }, [fetchUserStats]);
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { findSimilarSymptoms } from '../../lib/gemini';
@@ -14,12 +14,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const [resolving, setResolving] = useState(false);
   const isOwnPost = symptom.user_id === user.id;
 
-  useEffect(() => {
-    fetchSimilarCases();
-    fetchAiSuggestions();
-  }, [symptom]);
-
-  const fetchSimilarCases = async () => {
+  const fetchSimilarCases = useCallback(async () => {
     try {
       // Fetch all symptoms except the current one
       const { data, error } = await supabase
@@ -44,9 +39,9 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [symptom.id, symptom.symptoms_keywords]);
 
-  const fetchAiSuggestions = async () => {
+  const fetchAiSuggestions = useCallback(async () => {
     try {
       const response = await fetch('/api/generate-suggestions', {
         method: 'POST',
@@ -62,7 +57,12 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
     } catch (error) {
       console.error('Error fetching AI suggestions:', error);
     }
-  };
+  }, [symptom.description, similarCases]);
+
+  useEffect(() => {
+    fetchSimilarCases();
+    fetchAiSuggestions();
+  }, [fetchSimilarCases, fetchAiSuggestions]);
 
   const handleResolve = async (withSpecialist = false) => {
     if (!withSpecialist && !solutionText.trim()) {

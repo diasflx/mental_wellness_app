@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import SimilarSymptoms from './SimilarSymptoms';
@@ -11,11 +11,7 @@ export default function SymptomFeed({ refreshTrigger }) {
   const [filter, setFilter] = useState('all'); // all, my_posts, open, resolved
   const [selectedSymptom, setSelectedSymptom] = useState(null);
 
-  useEffect(() => {
-    fetchSymptoms();
-  }, [filter, refreshTrigger]);
-
-  const fetchSymptoms = async () => {
+  const fetchSymptoms = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -48,7 +44,11 @@ export default function SymptomFeed({ refreshTrigger }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, user.id]);
+
+  useEffect(() => {
+    fetchSymptoms();
+  }, [filter, refreshTrigger, fetchSymptoms]);
 
   const getStatusBadge = (status) => {
     const styles = {

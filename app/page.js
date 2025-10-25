@@ -35,7 +35,7 @@ export default function Home() {
         <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-center">
             <span className="text-yellow-800 font-medium text-sm">
-              ⚠️ Demo Mode: Limited functionality. Posts and data won't be saved. Sign up for full access!
+              ⚠️ Demo Mode: Limited functionality. Posts and data won&apos;t be saved. Sign up for full access!
             </span>
           </div>
         </div>
