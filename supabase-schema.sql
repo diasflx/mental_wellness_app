@@ -1,10 +1,10 @@
 -- Create symptoms table (the main ticket/post table)
+-- Matching is handled entirely by Gemini AI based on title and description
 CREATE TABLE IF NOT EXISTS symptoms (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
-  symptoms_keywords TEXT[], -- Array of keywords for matching
   status TEXT DEFAULT 'open' CHECK (status IN ('open', 'resolved', 'see_specialist')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

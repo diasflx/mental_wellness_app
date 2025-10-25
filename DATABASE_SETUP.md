@@ -34,9 +34,9 @@ After running the SQL, verify that the following tables exist:
    - user_id (UUID, references auth.users)
    - title (TEXT)
    - description (TEXT)
-   - symptoms_keywords (TEXT[])
    - status (TEXT: 'open', 'resolved', 'see_specialist')
    - created_at, updated_at (TIMESTAMP)
+   - Note: Matching is handled entirely by Gemini AI based on title and description
 
 2. **solutions** - Table for solutions to symptom posts
    - id (UUID)
