@@ -87,7 +87,7 @@ export default function UserProfile() {
             <span className="text-2xl">🎉</span>
             <div className="flex-1">
               <h4 className="font-semibold text-gray-800">Keep it up!</h4>
-              <p className="text-gray-600 text-sm">You've logged {stats.totalMoods + stats.totalEntries} activities. Consistency is key to understanding your mental health patterns.</p>
+              <p className="text-gray-600 text-sm">You&apos;ve logged {stats.totalMoods + stats.totalEntries} activities. Consistency is key to understanding your mental health patterns.</p>
             </div>
           </div>
 
@@ -96,7 +96,7 @@ export default function UserProfile() {
               <span className="text-2xl">⭐</span>
               <div className="flex-1">
                 <h4 className="font-semibold text-gray-800">Great streak!</h4>
-                <p className="text-gray-600 text-sm">You've been active for {stats.streak} days this week. You're building a healthy habit!</p>
+                <p className="text-gray-600 text-sm">You&apos;ve been active for {stats.streak} days this week. You&apos;re building a healthy habit!</p>
               </div>
             </div>
           )}

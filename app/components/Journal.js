@@ -96,6 +96,7 @@ export default function Journal() {
 
   useEffect(() => {
     setRandomPrompt(prompts[Math.floor(Math.random() * prompts.length)]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getNewPrompt = () => {

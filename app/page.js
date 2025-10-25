@@ -99,7 +99,7 @@ export default function Home() {
                 >
                   <div className="text-4xl mb-2">😊</div>
                   <h3 className="font-bold text-xl mb-2">Track Your Mood</h3>
-                  <p className="text-sm text-gray-600">Monitor how you're feeling throughout the day</p>
+                  <p className="text-sm text-gray-600">Monitor how you&apos;re feeling throughout the day</p>
                 </button>
                 <button
                   onClick={() => setActiveTab('breathing')}
