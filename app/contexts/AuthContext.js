@@ -19,9 +19,12 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserProfile = async (userId) => {
     if (!userId) {
+      console.log('No userId provided, setting hasUsername to true');
       setHasUsername(true);
-      return;
+      return true;
     }
+
+    console.log('Checking user profile for userId:', userId);
 
     try {
       const { data, error } = await supabase
@@ -30,17 +33,26 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .maybeSingle();
 
+      console.log('User profile query result:', { data, error });
+
       if (error) {
         console.error('Error checking user profile:', error);
-        setHasUsername(true); // Default to true to avoid blocking
-        return;
+        // If there's an error querying, assume they need a username
+        // This is safer than blocking them
+        setHasUsername(false);
+        return false;
       }
 
       // If data is null, user doesn't have a profile
-      setHasUsername(data !== null);
+      const hasProfile = data !== null;
+      console.log('User has profile:', hasProfile, 'data:', data);
+      setHasUsername(hasProfile);
+      return hasProfile;
     } catch (err) {
-      console.error('Error checking user profile:', err);
-      setHasUsername(true); // Default to true to avoid blocking
+      console.error('Exception checking user profile:', err);
+      // On exception, assume they need a username
+      setHasUsername(false);
+      return false;
     }
   };
 
