@@ -37,8 +37,14 @@ export const AuthProvider = ({ children }) => {
 
       if (error) {
         console.error('Error checking user profile:', error);
-        // If there's an error querying, assume they need a username
-        // This is safer than blocking them
+        // If error code is 42P01 (undefined_table) or 42703 (undefined_column),
+        // the table/column doesn't exist - prompt for username creation
+        if (error.code === '42P01' || error.code === '42703') {
+          console.log('Table/column does not exist, prompting for username');
+          setHasUsername(false);
+          return false;
+        }
+        // For other errors, assume they need a username to be safe
         setHasUsername(false);
         return false;
       }
