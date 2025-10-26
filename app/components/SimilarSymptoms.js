@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import PostDetails from './PostDetails';
 
 export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const { user } = useAuth();
@@ -458,9 +459,9 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         </div>
       </div>
 
-      {/* Nested Popup for viewing clicked posts */}
+      {/* Nested Popup for viewing clicked posts - Shows PostDetails instead of Similar Cases */}
       {nestedSymptom && (
-        <SimilarSymptoms
+        <PostDetails
           symptom={nestedSymptom}
           onClose={() => setNestedSymptom(null)}
           onRefresh={onRefresh}

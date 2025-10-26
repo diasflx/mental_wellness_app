@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import SimilarSymptoms from './SimilarSymptoms';
+import PostDetails from './PostDetails';
 
 export default function SymptomFeed({ refreshTrigger }) {
   const { user } = useAuth();
@@ -10,6 +11,7 @@ export default function SymptomFeed({ refreshTrigger }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, my_posts, open, resolved
   const [selectedSymptom, setSelectedSymptom] = useState(null);
+  const [selectedSymptomForSimilar, setSelectedSymptomForSimilar] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // ID of symptom to delete
   const [deleting, setDeleting] = useState(false);
 
@@ -181,7 +183,7 @@ export default function SymptomFeed({ refreshTrigger }) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedSymptom(symptom);
+                      setSelectedSymptomForSimilar(symptom);
                     }}
                     className="text-indigo-600 hover:text-indigo-700 font-medium"
                   >
@@ -205,11 +207,20 @@ export default function SymptomFeed({ refreshTrigger }) {
         </div>
       )}
 
-      {/* Similar Symptoms Modal */}
+      {/* Post Details Modal - Clicking on card */}
       {selectedSymptom && (
-        <SimilarSymptoms
+        <PostDetails
           symptom={selectedSymptom}
           onClose={() => setSelectedSymptom(null)}
+          onRefresh={fetchSymptoms}
+        />
+      )}
+
+      {/* Similar Symptoms Modal - Clicking "View Similar Cases" button */}
+      {selectedSymptomForSimilar && (
+        <SimilarSymptoms
+          symptom={selectedSymptomForSimilar}
+          onClose={() => setSelectedSymptomForSimilar(null)}
           onRefresh={fetchSymptoms}
         />
       )}
