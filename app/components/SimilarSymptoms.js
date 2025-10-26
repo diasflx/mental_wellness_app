@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -7,14 +7,16 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const { user } = useAuth();
   const [similarCases, setSimilarCases] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [aiSuggestions, setAiSuggestions] = useState('');
+  // const [aiSuggestions, setAiSuggestions] = useState(''); // Disabled for now
   const [error, setError] = useState('');
   const [showResolveForm, setShowResolveForm] = useState(false);
   const [solutionText, setSolutionText] = useState('');
   const [resolving, setResolving] = useState(false);
   const isOwnPost = symptom.user_id === user.id;
 
-  // Define AI suggestions function first
+  // AI suggestions functionality - COMMENTED OUT FOR NOW
+  // Only using Gemini for similar case matching
+  /*
   const fetchAiSuggestions = useCallback(async (cases) => {
     try {
       const response = await fetch('/api/generate-suggestions', {
@@ -37,6 +39,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
       console.error('Error fetching AI suggestions:', error);
     }
   }, [symptom.description]);
+  */
 
   // Fetch similar cases and then AI suggestions
   useEffect(() => {
@@ -99,8 +102,8 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
         setSimilarCases(matches || []);
 
-        // Fetch AI suggestions after getting matches
-        fetchAiSuggestions(matches || []);
+        // AI suggestions disabled for now - only using Gemini for matching
+        // fetchAiSuggestions(matches || []);
       } catch (error) {
         console.error('Error fetching similar cases:', error);
         setError('An error occurred while analyzing symptoms. Please try again.');
@@ -111,7 +114,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
     };
 
     fetchData();
-  }, [symptom, fetchAiSuggestions]);
+  }, [symptom]); // Removed fetchAiSuggestions dependency since it's commented out
 
   const handleResolve = async (withSpecialist = false) => {
     if (!withSpecialist && !solutionText.trim()) {
@@ -182,7 +185,9 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
             </div>
           )}
 
-          {/* AI Suggestions */}
+          {/* AI Suggestions - DISABLED FOR NOW */}
+          {/* Only using Gemini for similar case matching */}
+          {/*
           {aiSuggestions && !error && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-bold text-blue-900 mb-2">
@@ -193,6 +198,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
               </div>
             </div>
           )}
+          */}
 
           {/* Similar Cases */}
           <div>
