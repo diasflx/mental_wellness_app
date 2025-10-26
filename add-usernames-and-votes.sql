@@ -16,72 +16,105 @@ CREATE TABLE IF NOT EXISTS solution_votes (
   UNIQUE(solution_id, user_id) -- Each user can only vote once per solution
 );
 
--- Enable Row Level Security (will not error if already enabled)
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE solution_votes ENABLE ROW LEVEL SECURITY;
+-- Enable Row Level Security
+DO $$
+BEGIN
+  ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist, will be created above
+END $$;
 
--- Drop existing policies if they exist (to avoid conflicts)
-DROP POLICY IF EXISTS "Users can view all profiles" ON user_profiles;
-DROP POLICY IF EXISTS "Users can insert their own profile" ON user_profiles;
-DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
+DO $$
+BEGIN
+  ALTER TABLE solution_votes ENABLE ROW LEVEL SECURITY;
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist, will be created above
+END $$;
 
-DROP POLICY IF EXISTS "Users can view all votes" ON solution_votes;
-DROP POLICY IF EXISTS "Users can insert their own votes" ON solution_votes;
-DROP POLICY IF EXISTS "Users can update their own votes" ON solution_votes;
-DROP POLICY IF EXISTS "Users can delete their own votes" ON solution_votes;
+-- Drop and recreate policies for user_profiles
+DO $$
+BEGIN
+  DROP POLICY IF EXISTS "Users can view all profiles" ON user_profiles;
+  DROP POLICY IF EXISTS "Users can insert their own profile" ON user_profiles;
+  DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist yet, skip dropping policies
+END $$;
 
--- Policies for user_profiles
-CREATE POLICY "Users can view all profiles"
-  ON user_profiles FOR SELECT
-  USING (true);
+DO $$
+BEGIN
+  CREATE POLICY "Users can view all profiles"
+    ON user_profiles FOR SELECT
+    USING (true);
 
-CREATE POLICY "Users can insert their own profile"
-  ON user_profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  CREATE POLICY "Users can insert their own profile"
+    ON user_profiles FOR INSERT
+    WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile"
-  ON user_profiles FOR UPDATE
-  USING (auth.uid() = id);
+  CREATE POLICY "Users can update their own profile"
+    ON user_profiles FOR UPDATE
+    USING (auth.uid() = id);
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist, this shouldn't happen but catch it anyway
+END $$;
 
--- Policies for solution_votes
-CREATE POLICY "Users can view all votes"
-  ON solution_votes FOR SELECT
-  USING (true);
+-- Drop and recreate policies for solution_votes
+DO $$
+BEGIN
+  DROP POLICY IF EXISTS "Users can view all votes" ON solution_votes;
+  DROP POLICY IF EXISTS "Users can insert their own votes" ON solution_votes;
+  DROP POLICY IF EXISTS "Users can update their own votes" ON solution_votes;
+  DROP POLICY IF EXISTS "Users can delete their own votes" ON solution_votes;
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist yet, skip dropping policies
+END $$;
 
-CREATE POLICY "Users can insert their own votes"
-  ON solution_votes FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+DO $$
+BEGIN
+  CREATE POLICY "Users can view all votes"
+    ON solution_votes FOR SELECT
+    USING (true);
 
-CREATE POLICY "Users can update their own votes"
-  ON solution_votes FOR UPDATE
-  USING (auth.uid() = user_id);
+  CREATE POLICY "Users can insert their own votes"
+    ON solution_votes FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own votes"
-  ON solution_votes FOR DELETE
-  USING (auth.uid() = user_id);
+  CREATE POLICY "Users can update their own votes"
+    ON solution_votes FOR UPDATE
+    USING (auth.uid() = user_id);
 
--- Create indexes for better query performance (IF NOT EXISTS not supported, so we catch errors)
+  CREATE POLICY "Users can delete their own votes"
+    ON solution_votes FOR DELETE
+    USING (auth.uid() = user_id);
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist, this shouldn't happen but catch it anyway
+END $$;
+
+-- Create indexes for better query performance
 DO $$
 BEGIN
   CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles(username);
-EXCEPTION WHEN duplicate_table THEN
-  -- Index already exists, ignore
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist, skip index creation
+WHEN OTHERS THEN
+  -- Index might already exist or other error, ignore
 END $$;
 
 DO $$
 BEGIN
   CREATE INDEX IF NOT EXISTS idx_solution_votes_solution_id ON solution_votes(solution_id);
-EXCEPTION WHEN duplicate_table THEN
-  -- Index already exists, ignore
+  CREATE INDEX IF NOT EXISTS idx_solution_votes_user_id ON solution_votes(user_id);
+EXCEPTION WHEN undefined_table THEN
+  -- Table doesn't exist, skip index creation
+WHEN OTHERS THEN
+  -- Index might already exist or other error, ignore
 END $$;
 
+-- Add comments
 DO $$
 BEGIN
-  CREATE INDEX IF NOT EXISTS idx_solution_votes_user_id ON solution_votes(user_id);
-EXCEPTION WHEN duplicate_table THEN
-  -- Index already exists, ignore
+  COMMENT ON TABLE user_profiles IS 'Stores user-chosen usernames for anonymous identification';
+  COMMENT ON TABLE solution_votes IS 'Tracks user votes (likes/dislikes) on solutions';
+EXCEPTION WHEN undefined_table THEN
+  -- Tables don't exist, skip comments
 END $$;
-
--- Add comment
-COMMENT ON TABLE user_profiles IS 'Stores user-chosen usernames for anonymous identification';
-COMMENT ON TABLE solution_votes IS 'Tracks user votes (likes/dislikes) on solutions';
