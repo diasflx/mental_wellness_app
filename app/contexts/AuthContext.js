@@ -28,11 +28,18 @@ export const AuthProvider = ({ children }) => {
     console.log('Checking user profile for userId:', userId);
 
     try {
-      const { data, error } = await supabase
+      // Add a timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout')), 5000)
+      );
+
+      const queryPromise = supabase
         .from('user_profiles')
         .select('username')
         .eq('id', userId)
         .maybeSingle();
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
       console.log('User profile query result:', { data, error });
 
@@ -43,10 +50,13 @@ export const AuthProvider = ({ children }) => {
         if (error.code === '42P01' || error.code === '42703') {
           console.log('Table/column does not exist, prompting for username');
           setHasUsername(false);
+          setUsername(null);
           return false;
         }
         // For other errors, assume they need a username to be safe
+        console.log('Other error, prompting for username');
         setHasUsername(false);
+        setUsername(null);
         return false;
       }
 
@@ -65,8 +75,9 @@ export const AuthProvider = ({ children }) => {
       return hasProfile;
     } catch (err) {
       console.error('Exception checking user profile:', err);
-      // On exception, assume they need a username
+      // On exception (including timeout), assume they need a username
       setHasUsername(false);
+      setUsername(null);
       return false;
     }
   };
