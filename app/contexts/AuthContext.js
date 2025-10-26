@@ -28,18 +28,19 @@ export const AuthProvider = ({ children }) => {
         .from('user_profiles')
         .select('username')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code === 'PGRST116') {
-        // No profile found
-        setHasUsername(false);
+      if (error) {
+        console.error('Error checking user profile:', error);
+        setHasUsername(true); // Default to true to avoid blocking
         return;
       }
 
-      setHasUsername(!!data);
+      // If data is null, user doesn't have a profile
+      setHasUsername(data !== null);
     } catch (err) {
       console.error('Error checking user profile:', err);
-      setHasUsername(true);
+      setHasUsername(true); // Default to true to avoid blocking
     }
   };
 
@@ -77,11 +78,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkUsernameAvailability = async (username) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('user_profiles')
       .select('username')
       .eq('username', username.toLowerCase())
-      .single();
+      .maybeSingle();
 
     // If no data found, username is available
     return !data;
