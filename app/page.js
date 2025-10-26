@@ -5,9 +5,10 @@ import Auth from './components/Auth';
 import SymptomPost from './components/SymptomPost';
 import SymptomFeed from './components/SymptomFeed';
 import UserProfile from './components/UserProfile';
+import UsernamePrompt from './components/UsernamePrompt';
 
 export default function Home() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, hasUsername, signOut, handleUsernameCreated } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -23,6 +24,11 @@ export default function Home() {
 
   if (!user) {
     return <Auth />;
+  }
+
+  // Show username prompt if user doesn't have a username
+  if (!hasUsername && user?.email !== 'demo@localhost.dev') {
+    return <UsernamePrompt userId={user.id} onUsernameCreated={handleUsernameCreated} />;
   }
 
   const isDemoUser = user?.email === 'demo@localhost.dev';
@@ -185,7 +191,7 @@ export default function Home() {
 
         {activeTab === 'post' && (
           <SymptomPost
-            onPostCreated={(post) => {
+            onPostCreated={() => {
               setRefreshTrigger(prev => prev + 1);
               setActiveTab('feed');
             }}

@@ -15,25 +15,61 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasUsername, setHasUsername] = useState(true);
+
+  const checkUserProfile = async (userId) => {
+    if (!userId) {
+      setHasUsername(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // No profile found
+        setHasUsername(false);
+        return;
+      }
+
+      setHasUsername(!!data);
+    } catch (err) {
+      console.error('Error checking user profile:', err);
+      setHasUsername(true);
+    }
+  };
 
   useEffect(() => {
     // Check for demo mode user in localStorage
     const demoUser = localStorage.getItem('demoUser');
     if (demoUser) {
       setUser(JSON.parse(demoUser));
+      setHasUsername(true); // Demo users don't need username
       setLoading(false);
       return;
     }
 
     // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        await checkUserProfile(session.user.id);
+      }
       setLoading(false);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        await checkUserProfile(session.user.id);
+      } else {
+        setHasUsername(true);
+      }
       setLoading(false);
     });
 
@@ -125,14 +161,22 @@ export const AuthProvider = ({ children }) => {
     setUser(demoUserData);
   };
 
+  const handleUsernameCreated = async () => {
+    if (user) {
+      await checkUserProfile(user.id);
+    }
+  };
+
   const value = {
     user,
     loading,
+    hasUsername,
     signUp,
     signIn,
     signOut,
     demoLogin,
     checkUsernameAvailability,
+    handleUsernameCreated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
