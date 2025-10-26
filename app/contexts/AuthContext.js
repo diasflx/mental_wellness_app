@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasUsername, setHasUsername] = useState(true);
+  const [username, setUsername] = useState(null);
 
   const checkUserProfile = async (userId) => {
     if (!userId) {
@@ -53,6 +54,14 @@ export const AuthProvider = ({ children }) => {
       const hasProfile = data !== null;
       console.log('User has profile:', hasProfile, 'data:', data);
       setHasUsername(hasProfile);
+
+      // Store the username if profile exists
+      if (hasProfile && data?.username) {
+        setUsername(data.username);
+      } else {
+        setUsername(null);
+      }
+
       return hasProfile;
     } catch (err) {
       console.error('Exception checking user profile:', err);
@@ -188,6 +197,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    username,
     loading,
     hasUsername,
     signUp,

@@ -8,7 +8,7 @@ import UserProfile from './components/UserProfile';
 import UsernamePrompt from './components/UsernamePrompt';
 
 export default function Home() {
-  const { user, loading, hasUsername, signOut, handleUsernameCreated } = useAuth();
+  const { user, username, loading, hasUsername, signOut, handleUsernameCreated } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -54,7 +54,7 @@ export default function Home() {
               <h1 className="text-4xl font-bold text-gray-900">
                 Health Symptom Matcher
               </h1>
-              <p className="mt-2 text-gray-600">Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'friend'}!</p>
+              <p className="mt-2 text-gray-600">Welcome back, {username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'friend'}!</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
