@@ -25,7 +25,10 @@ export default function SymptomFeed({ refreshTrigger }) {
           solutions (
             id,
             solution_text,
-            created_at
+            created_at,
+            solution_votes (
+              vote_type
+            )
           )
         `)
         .order('created_at', { ascending: false });
@@ -171,9 +174,24 @@ export default function SymptomFeed({ refreshTrigger }) {
               {symptom.solutions && symptom.solutions.length > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                   <p className="text-sm text-green-800 font-semibold mb-1">Solution Found:</p>
-                  <p className="text-sm text-green-700 line-clamp-2">
+                  <p className="text-sm text-green-700 line-clamp-2 mb-2">
                     {symptom.solutions[0].solution_text}
                   </p>
+                  {/* Vote counts */}
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1 text-green-700">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                      </svg>
+                      <span>{symptom.solutions[0].solution_votes?.filter(v => v.vote_type === 'like').length || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-red-700">
+                      <svg className="w-4 h-4 rotate-180" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                      </svg>
+                      <span>{symptom.solutions[0].solution_votes?.filter(v => v.vote_type === 'dislike').length || 0}</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
