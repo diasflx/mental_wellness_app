@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import SimilarSymptoms from './SimilarSymptoms';
+import SolutionVote from './SolutionVote';
 
 export default function PostDetails({ symptom, onClose, onRefresh }) {
   const { user } = useAuth();
@@ -122,9 +123,12 @@ export default function PostDetails({ symptom, onClose, onRefresh }) {
                 {symptom.solutions.map((solution) => (
                   <div key={solution.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <p className="text-sm text-green-700 whitespace-pre-line">{solution.solution_text}</p>
-                    <p className="text-xs text-green-600 mt-2">
-                      {formatDate(solution.created_at)}
-                    </p>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-green-200">
+                      <p className="text-xs text-green-600">
+                        {formatDate(solution.created_at)}
+                      </p>
+                      <SolutionVote solutionId={solution.id} />
+                    </div>
                   </div>
                 ))}
               </div>

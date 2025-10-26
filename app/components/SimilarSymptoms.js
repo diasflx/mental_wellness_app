@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import PostDetails from './PostDetails';
+import SolutionVote from './SolutionVote';
 
 export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const { user } = useAuth();
@@ -289,9 +290,12 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                         <p className="text-xs font-semibold text-green-800 mb-1">
                           Solution:
                         </p>
-                        <p className="text-xs text-green-700">
+                        <p className="text-xs text-green-700 mb-2">
                           {similar.solutions[0].solution_text}
                         </p>
+                        <div className="flex justify-end pt-2 border-t border-green-200">
+                          <SolutionVote solutionId={similar.solutions[0].id} />
+                        </div>
                       </div>
                     )}
 
@@ -369,9 +373,12 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                           <p className="text-xs font-semibold text-green-800 mb-1">
                             Solution:
                           </p>
-                          <p className="text-xs text-green-700">
+                          <p className="text-xs text-green-700 mb-2">
                             {similar.solutions[0].solution_text}
                           </p>
+                          <div className="flex justify-end pt-2 border-t border-green-200">
+                            <SolutionVote solutionId={similar.solutions[0].id} />
+                          </div>
                         </div>
                       )}
 

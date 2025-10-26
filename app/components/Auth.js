@@ -7,11 +7,12 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const { signIn, signUp, demoLogin } = useAuth();
+  const { signIn, signUp, demoLogin, checkUsernameAvailability } = useAuth();
   const [isDevelopment, setIsDevelopment] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,13 @@ export default function Auth() {
         if (error) throw error;
         setMessage('Successfully logged in!');
       } else {
-        const { error } = await signUp(email, password, fullName);
+        // Check if username is available
+        const isAvailable = await checkUsernameAvailability(username);
+        if (!isAvailable) {
+          throw new Error(`Username "${username}" is already taken. Please choose another.`);
+        }
+
+        const { error } = await signUp(email, password, fullName, username);
         if (error) throw error;
         setMessage('Check your email for the confirmation link!');
       }
@@ -86,19 +93,38 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
-                  required={!isLogin}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                    required={!isLogin}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                    placeholder="Choose a username"
+                    required={!isLogin}
+                    minLength={3}
+                    maxLength={20}
+                    pattern="[a-z0-9]+"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Lowercase letters and numbers only, 3-20 characters</p>
+                </div>
+              </>
             )}
 
             <div>

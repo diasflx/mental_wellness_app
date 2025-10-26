@@ -40,8 +40,20 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email, password, fullName) => {
+  const checkUsernameAvailability = async (username) => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('username')
+      .eq('username', username.toLowerCase())
+      .single();
+
+    // If no data found, username is available
+    return !data;
+  };
+
+  const signUp = async (email, password, fullName, username) => {
     try {
+      // First, sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -52,6 +64,26 @@ export const AuthProvider = ({ children }) => {
           emailRedirectTo: `${window.location.origin}/`
         }
       });
+
+      if (error) return { data, error };
+
+      // Then create user profile with username
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: data.user.id,
+              username: username.toLowerCase()
+            }
+          ]);
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          return { data, error: profileError };
+        }
+      }
+
       return { data, error };
     } catch (err) {
       return { data: null, error: err };
@@ -100,6 +132,7 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signOut,
     demoLogin,
+    checkUsernameAvailability,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
