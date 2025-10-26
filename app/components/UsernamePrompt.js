@@ -78,6 +78,9 @@ export default function UsernamePrompt({ userId, onUsernameCreated }) {
       }
 
       console.log('Username created successfully!');
+      // Cache the username in localStorage
+      localStorage.setItem(`username_${userId}`, username.toLowerCase());
+      localStorage.setItem(`hasUsername_${userId}`, 'true');
       onUsernameCreated();
     } catch (err) {
       setError(`An error occurred: ${err.message}`);

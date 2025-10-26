@@ -24,6 +24,14 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
+    // Check localStorage cache first
+    const cachedUsername = localStorage.getItem(`username_${userId}`);
+    if (cachedUsername) {
+      setHasUsername(true);
+      setUsername(cachedUsername);
+      return true;
+    }
+
     try {
       // Reduced timeout to 3 seconds for faster response
       const timeoutPromise = new Promise((_, reject) =>
@@ -47,7 +55,13 @@ export const AuthProvider = ({ children }) => {
           setUsername(null);
           return false;
         }
-        // For other errors, assume they need a username to be safe
+        // For other errors, check if we have a cached state to fall back on
+        const hasUsernameCache = localStorage.getItem(`hasUsername_${userId}`);
+        if (hasUsernameCache === 'true') {
+          setHasUsername(true);
+          return true;
+        }
+        // Only prompt for username if we're certain they don't have one
         setHasUsername(false);
         setUsername(null);
         return false;
@@ -60,13 +74,23 @@ export const AuthProvider = ({ children }) => {
       // Store the username if profile exists
       if (hasProfile && data?.username) {
         setUsername(data.username);
+        // Cache the username in localStorage
+        localStorage.setItem(`username_${userId}`, data.username);
+        localStorage.setItem(`hasUsername_${userId}`, 'true');
       } else {
         setUsername(null);
+        localStorage.removeItem(`username_${userId}`);
+        localStorage.removeItem(`hasUsername_${userId}`);
       }
 
       return hasProfile;
     } catch (err) {
-      // On exception (including timeout), assume they need a username
+      // On exception (including timeout), check cache before assuming they need username
+      const hasUsernameCache = localStorage.getItem(`hasUsername_${userId}`);
+      if (hasUsernameCache === 'true') {
+        setHasUsername(true);
+        return true;
+      }
       setHasUsername(false);
       setUsername(null);
       return false;
@@ -148,6 +172,12 @@ export const AuthProvider = ({ children }) => {
           console.error('Error creating user profile:', profileError);
           return { data, error: profileError };
         }
+
+        // Cache the username immediately after creation
+        localStorage.setItem(`username_${data.user.id}`, username.toLowerCase());
+        localStorage.setItem(`hasUsername_${data.user.id}`, 'true');
+        setUsername(username.toLowerCase());
+        setHasUsername(true);
       }
 
       return { data, error };
@@ -171,6 +201,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('demoUser');
       setUser(null);
       return { error: null };
+    }
+
+    // Clear username cache on sign out
+    if (user?.id) {
+      localStorage.removeItem(`username_${user.id}`);
+      localStorage.removeItem(`hasUsername_${user.id}`);
     }
 
     const { error } = await supabase.auth.signOut();
