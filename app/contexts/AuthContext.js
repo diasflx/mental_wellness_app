@@ -20,17 +20,14 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserProfile = async (userId) => {
     if (!userId) {
-      console.log('No userId provided, setting hasUsername to true');
       setHasUsername(true);
       return true;
     }
 
-    console.log('Checking user profile for userId:', userId);
-
     try {
-      // Add a timeout to prevent hanging
+      // Reduced timeout to 3 seconds for faster response
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
+        setTimeout(() => reject(new Error('Query timeout')), 3000)
       );
 
       const queryPromise = supabase
@@ -42,20 +39,15 @@ export const AuthProvider = ({ children }) => {
       const result = await Promise.race([queryPromise, timeoutPromise]);
       const { data, error } = result;
 
-      console.log('User profile query result:', { data, error });
-
       if (error) {
-        console.error('Error checking user profile:', error);
         // If error code is 42P01 (undefined_table) or 42703 (undefined_column),
         // the table/column doesn't exist - prompt for username creation
         if (error.code === '42P01' || error.code === '42703') {
-          console.log('Table/column does not exist, prompting for username');
           setHasUsername(false);
           setUsername(null);
           return false;
         }
         // For other errors, assume they need a username to be safe
-        console.log('Other error, prompting for username');
         setHasUsername(false);
         setUsername(null);
         return false;
@@ -63,7 +55,6 @@ export const AuthProvider = ({ children }) => {
 
       // If data is null, user doesn't have a profile
       const hasProfile = data !== null;
-      console.log('User has profile:', hasProfile, 'data:', data);
       setHasUsername(hasProfile);
 
       // Store the username if profile exists
@@ -75,7 +66,6 @@ export const AuthProvider = ({ children }) => {
 
       return hasProfile;
     } catch (err) {
-      console.error('Exception checking user profile:', err);
       // On exception (including timeout), assume they need a username
       setHasUsername(false);
       setUsername(null);

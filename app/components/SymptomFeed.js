@@ -14,8 +14,16 @@ export default function SymptomFeed({ refreshTrigger }) {
   const [selectedSymptomForSimilar, setSelectedSymptomForSimilar] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // ID of symptom to delete
   const [deleting, setDeleting] = useState(false);
+  const [lastFetch, setLastFetch] = useState(0);
 
-  const fetchSymptoms = useCallback(async () => {
+  const fetchSymptoms = useCallback(async (force = false) => {
+    // Simple cache: only refetch if forced or more than 30 seconds have passed
+    const now = Date.now();
+    if (!force && symptoms.length > 0 && (now - lastFetch) < 30000) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       let query = supabase
@@ -46,12 +54,13 @@ export default function SymptomFeed({ refreshTrigger }) {
       if (error) throw error;
 
       setSymptoms(data || []);
+      setLastFetch(now);
     } catch (error) {
       console.error('Error fetching symptoms:', error);
     } finally {
       setLoading(false);
     }
-  }, [filter, user.id]);
+  }, [filter, user.id, symptoms.length, lastFetch]);
 
   useEffect(() => {
     fetchSymptoms();
@@ -230,7 +239,7 @@ export default function SymptomFeed({ refreshTrigger }) {
         <PostDetails
           symptom={selectedSymptom}
           onClose={() => setSelectedSymptom(null)}
-          onRefresh={fetchSymptoms}
+          onRefresh={() => fetchSymptoms(true)}
         />
       )}
 
@@ -239,7 +248,7 @@ export default function SymptomFeed({ refreshTrigger }) {
         <SimilarSymptoms
           symptom={selectedSymptomForSimilar}
           onClose={() => setSelectedSymptomForSimilar(null)}
-          onRefresh={fetchSymptoms}
+          onRefresh={() => fetchSymptoms(true)}
         />
       )}
 
