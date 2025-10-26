@@ -151,21 +151,18 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-800 mb-4">How It Works</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-4xl mb-3">1️⃣</div>
                   <h3 className="font-bold text-lg mb-2">Post Symptoms</h3>
                   <p className="text-gray-600 text-sm">
                     Describe your symptoms in detail. Our AI extracts key information.
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl mb-3">2️⃣</div>
                   <h3 className="font-bold text-lg mb-2">Get Matches</h3>
                   <p className="text-gray-600 text-sm">
                     AI matches your symptoms with similar cases from the community.
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl mb-3">3️⃣</div>
                   <h3 className="font-bold text-lg mb-2">Find Solutions</h3>
                   <p className="text-gray-600 text-sm">
                     Review solutions that worked for others or consult a specialist.
