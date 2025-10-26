@@ -14,6 +14,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const [showResolveForm, setShowResolveForm] = useState(false);
   const [solutionText, setSolutionText] = useState('');
   const [resolving, setResolving] = useState(false);
+  const [nestedSymptom, setNestedSymptom] = useState(null); // For viewing clicked posts
   const isOwnPost = symptom.user_id === user.id;
 
   // AI suggestions functionality - COMMENTED OUT FOR NOW
@@ -49,6 +50,24 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
       try {
         setLoading(true);
         setError('');
+
+        // Check if we have cached matches first
+        if (symptom.cached_matches) {
+          console.log('Using cached matches from database');
+          const matches = symptom.cached_matches;
+
+          // Split cached matches into high and low similarity
+          const highSimilarity = matches?.filter(m => m.similarityScore >= 0.7) || [];
+          const lowSimilarity = matches?.filter(m => m.similarityScore >= 0.3 && m.similarityScore < 0.7) || [];
+
+          setSimilarCases(highSimilarity);
+          setLowerSimilarityCases(lowSimilarity);
+          setLoading(false);
+          return;
+        }
+
+        // No cached matches - fetch from Gemini API
+        console.log('No cached matches found, calling Gemini API...');
 
         // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
         const { data, error: dbError } = await supabase
@@ -101,6 +120,14 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
         const { matches } = await response.json();
         console.log(`Received ${matches?.length || 0} matches from AI`);
+
+        // Cache the matches in the database for future use
+        await supabase
+          .from('symptoms')
+          .update({ cached_matches: matches })
+          .eq('id', symptom.id);
+
+        console.log('Cached matches saved to database');
 
         // Split matches into high similarity (>= 0.7) and lower similarity (0.3-0.69)
         const highSimilarity = matches?.filter(m => m.similarityScore >= 0.7) || [];
@@ -230,7 +257,8 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                 {similarCases.map((similar) => (
                   <div
                     key={similar.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
+                    onClick={() => setNestedSymptom(similar)}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors cursor-pointer"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold text-gray-800">{similar.title}</h4>
@@ -309,7 +337,8 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
                   {lowerSimilarityCases.map((similar) => (
                     <div
                       key={similar.id}
-                      className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                      onClick={() => setNestedSymptom(similar)}
+                      className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-semibold text-gray-800">{similar.title}</h4>
@@ -428,6 +457,15 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
           </div>
         </div>
       </div>
+
+      {/* Nested Popup for viewing clicked posts */}
+      {nestedSymptom && (
+        <SimilarSymptoms
+          symptom={nestedSymptom}
+          onClose={() => setNestedSymptom(null)}
+          onRefresh={onRefresh}
+        />
+      )}
     </div>
   );
 }

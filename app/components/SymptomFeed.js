@@ -155,7 +155,8 @@ export default function SymptomFeed({ refreshTrigger }) {
           {symptoms.map((symptom) => (
             <div
               key={symptom.id}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              onClick={() => setSelectedSymptom(symptom)}
+              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
             >
               <div className="flex justify-between items-start mb-3">
                 <h3 className="text-xl font-bold text-gray-800 flex-1">{symptom.title}</h3>
@@ -178,14 +179,20 @@ export default function SymptomFeed({ refreshTrigger }) {
                 <span className="text-gray-500">{formatDate(symptom.created_at)}</span>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setSelectedSymptom(symptom)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSymptom(symptom);
+                    }}
                     className="text-indigo-600 hover:text-indigo-700 font-medium"
                   >
                     View Similar Cases →
                   </button>
                   {symptom.user_id === user.id && (
                     <button
-                      onClick={() => setDeleteConfirm(symptom.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm(symptom.id);
+                      }}
                       className="text-red-600 hover:text-red-700 font-medium"
                     >
                       Delete
