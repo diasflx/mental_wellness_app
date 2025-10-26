@@ -63,8 +63,9 @@ export default function SymptomFeed({ refreshTrigger }) {
   }, [filter, user.id, symptoms.length, lastFetch]);
 
   useEffect(() => {
-    fetchSymptoms();
-  }, [filter, refreshTrigger, fetchSymptoms]);
+    // Force fetch when filter or refreshTrigger changes
+    fetchSymptoms(true);
+  }, [filter, refreshTrigger]);
 
   const getStatusBadge = (status) => {
     const styles = {

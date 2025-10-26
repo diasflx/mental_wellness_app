@@ -123,7 +123,7 @@ export default function Home() {
           <div className="space-y-8">
             {/* Welcome Section */}
             <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to Health Symptom Matcher</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to Symptm</h2>
               <p className="text-gray-600 text-lg mb-6">
                 Share your symptoms, find similar cases, and discover solutions from the community.
                 Our AI-powered matching helps connect you with others who have experienced similar health concerns.

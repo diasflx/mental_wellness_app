@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const [stats, setStats] = useState({
     totalSymptoms: 0,
     totalSolutions: 0,
@@ -64,13 +64,13 @@ export default function UserProfile() {
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-center space-x-6">
           <div className="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-4xl text-white font-bold">
-            {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
+            {(username || user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-gray-800">
-              {user?.user_metadata?.full_name || 'Welcome'}
+              {username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
             </h2>
-            <p className="text-gray-600 mt-1">{user?.email}</p>
+            <p className="text-gray-600 mt-1">@{username || user?.email?.split('@')[0]}</p>
             <p className="text-sm text-gray-500 mt-2">Member since {stats.joinDate}</p>
           </div>
         </div>
