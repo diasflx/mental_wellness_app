@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Add a timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout')), 5000)
+        setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
       );
 
       const queryPromise = supabase
@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .maybeSingle();
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+      const result = await Promise.race([queryPromise, timeoutPromise]);
+      const { data, error } = result;
 
       console.log('User profile query result:', { data, error });
 
