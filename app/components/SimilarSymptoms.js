@@ -17,7 +17,6 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
   const [solutionText, setSolutionText] = useState('');
   const [resolving, setResolving] = useState(false);
   const [nestedSymptom, setNestedSymptom] = useState(null); // For viewing clicked posts
-  const [forceRefresh, setForceRefresh] = useState(false); // Force re-check for matches
   const isOwnPost = symptom.user_id === user.id;
 
   // AI suggestions functionality - COMMENTED OUT FOR NOW
@@ -54,34 +53,23 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         setLoading(true);
         setError('');
 
-        // Check if we have cached matches first (skip if forceRefresh is true)
-        if (symptom.cached_matches && !forceRefresh) {
-          // Check cache age - if older than 24 hours, re-fetch
-          const cacheAge = symptom.cached_matches_updated_at
-            ? Date.now() - new Date(symptom.cached_matches_updated_at).getTime()
-            : Infinity;
-          const twentyFourHours = 24 * 60 * 60 * 1000;
+        // Check if we have cached matches first
+        if (symptom.cached_matches) {
+          console.log('Using cached matches from database');
+          const matches = symptom.cached_matches;
 
-          if (cacheAge < twentyFourHours) {
-            console.log('Using cached matches from database');
-            const matches = symptom.cached_matches;
+          // Split cached matches into high and low similarity
+          const highSimilarity = matches?.filter(m => m.similarityScore >= 0.7) || [];
+          const lowSimilarity = matches?.filter(m => m.similarityScore >= 0.3 && m.similarityScore < 0.7) || [];
 
-            // Split cached matches into high and low similarity
-            const highSimilarity = matches?.filter(m => m.similarityScore >= 0.7) || [];
-            const lowSimilarity = matches?.filter(m => m.similarityScore >= 0.3 && m.similarityScore < 0.7) || [];
-
-            setSimilarCases(highSimilarity);
-            setLowerSimilarityCases(lowSimilarity);
-            setLoading(false);
-            return;
-          } else {
-            console.log('Cached matches are older than 24 hours, re-fetching...');
-          }
+          setSimilarCases(highSimilarity);
+          setLowerSimilarityCases(lowSimilarity);
+          setLoading(false);
+          return;
         }
 
-        // No cached matches or forced refresh - fetch from Gemini API
-        console.log(forceRefresh ? 'Force refresh requested, calling Gemini API...' : 'No cached matches found, calling Gemini API...');
-        setForceRefresh(false); // Reset the force refresh flag
+        // No cached matches - fetch from Gemini API
+        console.log('No cached matches found, calling Gemini API...');
 
         // Fetch ALL symptoms except the current one (bidirectional - includes both older and newer posts)
         const { data, error: dbError } = await supabase
@@ -135,14 +123,10 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
         const { matches } = await response.json();
         console.log(`Received ${matches?.length || 0} matches from AI`);
 
-        // Cache the matches in the database for future use with timestamp
-        const now = new Date().toISOString();
+        // Cache the matches in the database for future use
         await supabase
           .from('symptoms')
-          .update({
-            cached_matches: matches,
-            cached_matches_updated_at: now
-          })
+          .update({ cached_matches: matches })
           .eq('id', symptom.id);
 
         console.log('Cached matches saved to database');
@@ -153,11 +137,6 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
         setSimilarCases(highSimilarity);
         setLowerSimilarityCases(lowSimilarity);
-
-        // Refresh the parent component so it has the updated cached matches
-        if (onRefresh) {
-          onRefresh();
-        }
 
         // AI suggestions disabled for now - only using Gemini for matching
         // fetchAiSuggestions(matches || []);
@@ -172,7 +151,7 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
     };
 
     fetchData();
-  }, [symptom, forceRefresh]); // Removed fetchAiSuggestions dependency since it's commented out
+  }, [symptom]); // Removed fetchAiSuggestions dependency since it's commented out
 
   const handleResolve = async (withSpecialist = false) => {
     if (!withSpecialist && !solutionText.trim()) {
@@ -260,19 +239,9 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
 
           {/* Similar Cases */}
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
-                Similar Cases ({similarCases.length})
-              </h3>
-              {!loading && (
-                <button
-                  onClick={() => setForceRefresh(true)}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-                >
-                  Re-check for New Matches
-                </button>
-              )}
-            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Similar Cases ({similarCases.length})
+            </h3>
 
             {loading ? (
               <div className="text-center py-8">
@@ -280,16 +249,10 @@ export default function SimilarSymptoms({ symptom, onClose, onRefresh }) {
               </div>
             ) : similarCases.length === 0 ? (
               <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <p className="text-gray-600 mb-3">No similar cases found yet.</p>
-                <p className="text-gray-500 text-sm mb-4">
-                  You might be the first with these symptoms, or new posts may have been added since the last check.
+                <p className="text-gray-600">No similar cases found yet.</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  You might be the first with these symptoms!
                 </p>
-                <button
-                  onClick={() => setForceRefresh(true)}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-                >
-                  Re-check for New Matches
-                </button>
               </div>
             ) : (
               <div className="space-y-4">
