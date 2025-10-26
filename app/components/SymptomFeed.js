@@ -68,9 +68,9 @@ export default function SymptomFeed({ refreshTrigger }) {
 
   const getStatusBadge = (status) => {
     const styles = {
-      open: 'bg-blue-100 text-blue-800',
-      resolved: 'bg-green-100 text-green-800',
-      see_specialist: 'bg-yellow-100 text-yellow-800'
+      open: { bg: '#EEF2FF', color: '#6366F1' },
+      resolved: { bg: '#D1FAE5', color: '#059669' },
+      see_specialist: { bg: '#FEF3C7', color: '#D97706' }
     };
 
     const labels = {
@@ -80,7 +80,17 @@ export default function SymptomFeed({ refreshTrigger }) {
     };
 
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status]}`}>
+      <span
+        style={{
+          background: styles[status].bg,
+          color: styles[status].color,
+          fontFamily: 'Rubik',
+          fontWeight: 500,
+          fontSize: '13px',
+          padding: '4px 12px',
+          borderRadius: '12px'
+        }}
+      >
         {labels[status]}
       </span>
     );
@@ -143,11 +153,18 @@ export default function SymptomFeed({ refreshTrigger }) {
           <button
             key={filterOption.id}
             onClick={() => setFilter(filterOption.id)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === filterOption.id
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            style={{
+              background: filter === filterOption.id ? 'var(--primary)' : 'var(--card-bg)',
+              color: filter === filterOption.id ? 'white' : 'var(--foreground)',
+              border: filter === filterOption.id ? 'none' : '1px solid var(--border)',
+              fontFamily: 'Rubik',
+              fontWeight: 500,
+              fontSize: '14px',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              boxShadow: filter === filterOption.id ? '0 1px 2px 0 rgba(0, 0, 0, 0.05)' : 'none'
+            }}
+            className="transition-all hover:opacity-90"
           >
             {filterOption.label}
           </button>
@@ -170,14 +187,22 @@ export default function SymptomFeed({ refreshTrigger }) {
             <div
               key={symptom.id}
               onClick={() => setSelectedSymptom(symptom)}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+              className="card-hover cursor-pointer"
+              style={{
+                background: 'var(--card-bg)',
+                borderRadius: '8px',
+                padding: '20px 24px',
+                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+                border: '1px solid var(--border)',
+                borderLeft: symptom.status === 'resolved' ? '3px solid var(--success)' : symptom.status === 'open' ? '3px solid var(--primary)' : '3px solid var(--warning)'
+              }}
             >
               <div className="flex justify-between items-start mb-3">
-                <h3 className="text-xl font-bold text-gray-800 flex-1">{symptom.title}</h3>
+                <h3 style={{fontFamily: 'Rubik', fontWeight: 600, fontSize: '20px', color: 'var(--foreground)', letterSpacing: '-0.01em'}} className="flex-1">{symptom.title}</h3>
                 {getStatusBadge(symptom.status)}
               </div>
 
-              <p className="text-gray-600 mb-4 line-clamp-3">{symptom.description}</p>
+              <p style={{fontFamily: 'Rubik', fontSize: '16px', lineHeight: '1.6', color: 'var(--muted)'}} className="mb-4 line-clamp-3">{symptom.description}</p>
 
               {/* Solution Preview */}
               {symptom.solutions && symptom.solutions.length > 0 && (
@@ -204,15 +229,21 @@ export default function SymptomFeed({ refreshTrigger }) {
                 </div>
               )}
 
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">{formatDate(symptom.created_at)}</span>
+              <div className="flex justify-between items-center" style={{marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)'}}>
+                <span style={{fontFamily: 'Rubik', fontSize: '13px', color: 'var(--muted)'}}>{formatDate(symptom.created_at)}</span>
                 <div className="flex gap-3">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedSymptomForSimilar(symptom);
                     }}
-                    className="text-indigo-600 hover:text-indigo-700 font-medium"
+                    style={{
+                      color: 'var(--primary)',
+                      fontFamily: 'Rubik',
+                      fontWeight: 500,
+                      fontSize: '14px'
+                    }}
+                    className="hover:opacity-80 transition-opacity"
                   >
                     View Similar Cases →
                   </button>
@@ -222,7 +253,13 @@ export default function SymptomFeed({ refreshTrigger }) {
                         e.stopPropagation();
                         setDeleteConfirm(symptom.id);
                       }}
-                      className="text-red-600 hover:text-red-700 font-medium"
+                      style={{
+                        color: 'var(--error)',
+                        fontFamily: 'Rubik',
+                        fontWeight: 500,
+                        fontSize: '14px'
+                      }}
+                      className="hover:opacity-80 transition-opacity"
                     >
                       Delete
                     </button>

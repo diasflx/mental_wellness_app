@@ -14,9 +14,9 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{background: 'var(--background)'}}>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800">Loading...</h2>
+          <h2 className="text-2xl font-semibold" style={{color: 'var(--foreground)', fontFamily: 'Rubik'}}>Loading...</h2>
         </div>
       </div>
     );
@@ -34,12 +34,12 @@ export default function Home() {
   const isDemoUser = user?.email === 'demo@localhost.dev';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{background: 'var(--background)'}}>
       {/* Demo Mode Warning */}
       {isDemoUser && (
-        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-3">
+        <div style={{background: '#FEF3C7', borderBottom: '2px solid var(--warning)'}} className="px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-center">
-            <span className="text-yellow-800 font-medium text-sm">
+            <span style={{color: '#92400E', fontFamily: 'Rubik', fontWeight: 500, fontSize: '14px'}}>
               Demo Mode: Limited functionality. Posts and data won&apos;t be saved. Sign up for full access!
             </span>
           </div>
@@ -47,22 +47,34 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-md">
+      <header style={{background: 'var(--card-bg)', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.08)'}}>
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                Health Symptom Matcher
+              <h1 style={{fontFamily: 'Rubik', fontWeight: 600, fontSize: '28px', color: 'var(--foreground)', letterSpacing: '-0.02em'}}>
+                Symptm
               </h1>
-              <p className="mt-2 text-gray-600">Welcome back, {username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'friend'}!</p>
+              <p style={{marginTop: '6px', color: 'var(--muted)', fontFamily: 'Rubik', fontSize: '14px'}}>
+                Welcome back, {username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'friend'}
+              </p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm text-gray-600">{user?.email}</p>
+                <p style={{fontSize: '13px', color: 'var(--muted)', fontFamily: 'Rubik'}}>{user?.email}</p>
               </div>
               <button
                 onClick={() => signOut()}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                style={{
+                  background: 'var(--primary)',
+                  color: 'white',
+                  fontFamily: 'Rubik',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}
+                className="hover:opacity-90 transition-all"
               >
                 Sign Out
               </button>
@@ -72,7 +84,7 @@ export default function Home() {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <nav style={{background: 'var(--card-bg)', borderBottom: '1px solid var(--border)'}} className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
@@ -84,11 +96,19 @@ export default function Home() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                style={{
+                  paddingTop: '16px',
+                  paddingBottom: '16px',
+                  paddingLeft: '4px',
+                  paddingRight: '4px',
+                  borderBottom: activeTab === tab.id ? '2px solid var(--primary)' : '2px solid transparent',
+                  color: activeTab === tab.id ? 'var(--primary)' : 'var(--muted)',
+                  fontFamily: 'Rubik',
+                  fontWeight: 500,
+                  fontSize: '15px',
+                  transition: 'all 0.2s'
+                }}
+                className="hover:opacity-80"
               >
                 {tab.label}
               </button>
