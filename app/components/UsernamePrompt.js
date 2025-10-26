@@ -57,25 +57,31 @@ export default function UsernamePrompt({ userId, onUsernameCreated }) {
 
     setCreating(true);
     try {
-      const { error: insertError } = await supabase
+      console.log('Creating username for userId:', userId, 'username:', username);
+
+      const { data, error: insertError } = await supabase
         .from('user_profiles')
         .insert([
           {
             id: userId,
             username: username.toLowerCase()
           }
-        ]);
+        ])
+        .select();
+
+      console.log('Insert result:', { data, error: insertError });
 
       if (insertError) {
-        setError('Failed to create username. Please try again.');
+        setError(`Failed to create username: ${insertError.message}`);
         console.error('Error creating username:', insertError);
         return;
       }
 
+      console.log('Username created successfully!');
       onUsernameCreated();
     } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error('Error:', err);
+      setError(`An error occurred: ${err.message}`);
+      console.error('Exception:', err);
     } finally {
       setCreating(false);
     }
